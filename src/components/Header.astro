@@ -1,0 +1,53 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+import type { Property } from '../lib/types';
+import { formatPrice, getPropertyTypeLabel } from '../lib/format';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+  property: Property;
+  locale: Locale;
+}
+
+const { property, locale } = Astro.props;
+---
+
+<header class="sticky top-0 z-40 border-b border-stone-200/80 bg-stone-100/90 backdrop-blur-md">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="min-w-0">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        {t(locale, 'header.forSale')}
+      </p>
+      <p class="truncate font-serif text-lg font-semibold text-stone-900 sm:text-xl">
+        {property.address}, {property.city}
+      </p>
+    </div>
+    <div class="hidden items-center gap-4 sm:flex">
+      <div class="text-right">
+        <p class="font-serif text-2xl font-bold text-stone-900">
+          {formatPrice(property.price, property.currency, locale)}
+        </p>
+        <p class="text-sm text-stone-600">
+          {getPropertyTypeLabel(property.propertyType, locale)}
+        </p>
+      </div>
+      <LanguageSwitcher locale={locale} />
+      <a
+        href="#contact"
+        class="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        {t(locale, 'header.contact')}
+      </a>
+    </div>
+    <div class="flex items-center gap-2 sm:hidden">
+      <LanguageSwitcher locale={locale} />
+      <a
+        href="#contact"
+        class="shrink-0 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        {t(locale, 'header.contact')}
+      </a>
+    </div>
+  </div>
+</header>

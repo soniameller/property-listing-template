@@ -1,0 +1,65 @@
+---
+import ContactSection from './ContactSection.astro';
+import FloorPlans from './FloorPlans.astro';
+import Footer from './Footer.astro';
+import Gallery from './Gallery.astro';
+import Header from './Header.astro';
+import InspirationSection from './InspirationSection.astro';
+import LocationMap from './LocationMap.astro';
+import PropertyDetails from './PropertyDetails.astro';
+import Layout from '../layouts/Layout.astro';
+import type { Locale } from '../i18n/config';
+import { localizeProperty } from '../i18n/property';
+import { t } from '../i18n/ui';
+import { getProperty } from '../lib/contentful';
+
+interface Props {
+  locale: Locale;
+  canonicalPath?: string;
+  noindex?: boolean;
+}
+
+const { locale, canonicalPath, noindex } = Astro.props;
+const property = localizeProperty(await getProperty(), locale);
+const pageTitle = `${property.title} | ${t(locale, 'meta.forSaleSuffix')}`;
+const ogImage = property.images[0]?.url;
+const metaDescription = (property.description ?? '').slice(0, 160);
+const showFloorPlans = false;
+const showInspiration = true;
+---
+
+<Layout
+  title={pageTitle}
+  description={metaDescription}
+  image={ogImage}
+  locale={locale}
+  canonicalPath={canonicalPath}
+  noindex={noindex}
+>
+  <Header property={property} locale={locale} />
+  <main>
+    <Gallery images={property.images} title={property.title} locale={locale} />
+    <PropertyDetails property={property} locale={locale} />
+    <LocationMap property={property} locale={locale} />
+    {
+      showFloorPlans && property.floorPlans && (
+        <FloorPlans floorPlans={property.floorPlans} locale={locale} />
+      )
+    }
+    {showInspiration && <InspirationSection locale={locale} />}
+    <ContactSection property={property} locale={locale} />
+  </main>
+  <Footer locale={locale} />
+</Layout>
+
+<!-- Hidden form for Netlify Forms detection at build time -->
+<form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="contact" />
+  <input type="text" name="bot-field" />
+  <input type="text" name="name" required />
+  <input type="email" name="email" required />
+  <input type="tel" name="phone" />
+  <textarea name="message" required></textarea>
+  <input type="text" name="property" />
+  <input type="text" name="locale" />
+</form>

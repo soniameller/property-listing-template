@@ -1,0 +1,416 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+import type { PropertyImage } from '../lib/types';
+
+interface Props {
+  images: PropertyImage[];
+  title: string;
+  locale: Locale;
+}
+
+const { images, title, locale } = Astro.props;
+const mainImage = images[0];
+const thumbnails = images.slice(1, 5);
+
+function isVideo(image: PropertyImage) {
+  return image.type === 'video';
+}
+---
+
+<section class="bg-stone-950" aria-label={t(locale, 'gallery.ariaLabel')}>
+  <div class="mx-auto max-w-5xl px-4 py-4 sm:px-6 lg:py-5">
+    <div class="grid gap-2 lg:grid-cols-4 lg:grid-rows-2 lg:gap-3 lg:max-h-[380px]">
+      {
+        mainImage && (
+          <button
+            type="button"
+            class="gallery-trigger group relative aspect-[4/3] max-h-[280px] w-full overflow-hidden rounded-xl sm:max-h-none lg:col-span-2 lg:row-span-2 lg:aspect-auto lg:h-full lg:max-h-[380px]"
+            data-index="0"
+            aria-label={`${isVideo(mainImage) ? t(locale, 'gallery.viewVideo') : t(locale, 'gallery.viewPhoto')}: ${mainImage.alt}`}
+          >
+            {isVideo(mainImage) ? (
+              <video
+                src={mainImage.url}
+                class="h-full w-full object-cover"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-hidden="true"
+              />
+            ) : (
+              <img
+                src={mainImage.url}
+                alt={mainImage.alt}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="eager"
+                fetchpriority="high"
+              />
+            )}
+            <span class="absolute inset-0 bg-stone-950/0 transition group-hover:bg-stone-950/10" />
+          </button>
+        )
+      }
+
+      {
+        thumbnails.map((image, index) => (
+          <button
+            type="button"
+            class="gallery-trigger group relative hidden aspect-[4/3] overflow-hidden rounded-xl lg:block"
+            data-index={index + 1}
+            aria-label={`${isVideo(image) ? t(locale, 'gallery.viewVideo') : t(locale, 'gallery.viewPhoto')}: ${image.alt}`}
+          >
+            {isVideo(image) ? (
+              <video
+                src={image.url}
+                class="h-full w-full object-cover"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                aria-hidden="true"
+              />
+            ) : (
+              <img
+                src={image.url}
+                alt={image.alt}
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+            )}
+            <span class="absolute inset-0 bg-stone-950/0 transition group-hover:bg-stone-950/10" />
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      images.length > 1 && (
+        <button
+          type="button"
+          id="open-gallery"
+          class="mt-3 w-full rounded-xl border border-stone-700 bg-stone-900 px-4 py-3 text-sm font-medium text-stone-100 transition hover:bg-stone-800 lg:hidden"
+        >
+          {t(locale, 'gallery.viewAllPhotos', { count: images.length })}
+        </button>
+      )
+    }
+
+    {
+      images.length > 5 && (
+        <button
+          type="button"
+          id="open-gallery-desktop"
+          class="mt-3 hidden rounded-full border border-stone-700 bg-stone-900 px-5 py-2 text-sm font-medium text-stone-100 transition hover:bg-stone-800 lg:inline-flex"
+        >
+          {t(locale, 'gallery.viewAllPhotosDesktop', { count: images.length })}
+        </button>
+      )
+    }
+  </div>
+</section>
+
+<div
+  id="lightbox"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/95 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label={t(locale, 'gallery.viewer')}
+  hidden
+>
+  <button
+    type="button"
+    id="lightbox-close"
+    class="absolute right-4 top-4 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+    aria-label={t(locale, 'gallery.close')}
+  >
+    {t(locale, 'gallery.close')}
+  </button>
+  <button
+    type="button"
+    id="lightbox-prev"
+    class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-4 py-3 text-white transition hover:bg-white/20"
+    aria-label={t(locale, 'gallery.previous')}
+  >
+    ‹
+  </button>
+  <figure
+    id="lightbox-media"
+    class="relative max-h-[85vh] max-w-5xl touch-pan-y select-none"
+  >
+    <div
+      id="lightbox-loading"
+      class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+      role="status"
+      hidden
+    >
+      <span class="sr-only">{t(locale, 'gallery.loading')}</span>
+      <span
+        class="h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white"
+        aria-hidden="true"
+      ></span>
+    </div>
+    <img
+      id="lightbox-image"
+      src=""
+      alt=""
+      class="max-h-[85vh] w-full rounded-lg object-contain transition-opacity duration-200"
+    />
+    <video
+      id="lightbox-video"
+      class="hidden max-h-[85vh] w-full rounded-lg object-contain"
+      controls
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+    />
+    <div
+      id="lightbox-inspiration"
+      class="hidden max-h-[85vh] w-full max-w-md flex-col items-center justify-center rounded-lg bg-stone-900 px-6 py-10 text-center sm:px-10"
+      hidden
+    >
+      <img
+        src="/inspiration/inspiration-living-room.jpg"
+        alt=""
+        class="mb-5 aspect-[3/4] w-40 rounded-xl object-cover ring-1 ring-white/15 sm:w-48"
+        width="192"
+        height="256"
+      />
+      <p class="font-serif text-2xl font-semibold text-white">
+        {t(locale, 'inspiration.title')}
+      </p>
+      <p class="mt-2 text-sm text-stone-300">
+        {t(locale, 'gallery.inspirationHint')}
+      </p>
+      <a
+        id="lightbox-inspiration-link"
+        href="#inspiration"
+        class="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-medium text-stone-900 transition hover:bg-stone-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        {t(locale, 'gallery.inspirationCta')}
+      </a>
+    </div>
+    <figcaption id="lightbox-caption" class="mt-3 text-center text-sm text-stone-300"></figcaption>
+  </figure>
+  <button
+    type="button"
+    id="lightbox-next"
+    class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-4 py-3 text-white transition hover:bg-white/20"
+    aria-label={t(locale, 'gallery.next')}
+  >
+    ›
+  </button>
+</div>
+
+<script define:vars={{ images, title }}>
+  const lightbox = document.getElementById('lightbox');
+  const lightboxMedia = document.getElementById('lightbox-media');
+  const lightboxImage = document.getElementById('lightbox-image');
+  const lightboxVideo = document.getElementById('lightbox-video');
+  const lightboxInspiration = document.getElementById('lightbox-inspiration');
+  const lightboxInspirationLink = document.getElementById('lightbox-inspiration-link');
+  const lightboxLoading = document.getElementById('lightbox-loading');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const closeButton = document.getElementById('lightbox-close');
+  const prevButton = document.getElementById('lightbox-prev');
+  const nextButton = document.getElementById('lightbox-next');
+  const slideCount = images.length + 1;
+  const inspirationIndex = images.length;
+  let currentIndex = 0;
+  let lastFocusedElement = null;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+
+  const SWIPE_THRESHOLD = 50;
+
+  function setLoading(isLoading) {
+    if (!lightboxLoading || !lightbox) return;
+    lightboxLoading.hidden = !isLoading;
+    lightbox.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+    if (lightboxImage) {
+      lightboxImage.classList.toggle('opacity-0', isLoading);
+    }
+  }
+
+  function pauseLightboxVideo() {
+    if (!lightboxVideo) return;
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute('src');
+    lightboxVideo.load();
+  }
+
+  function showInspirationSlide() {
+    pauseLightboxVideo();
+    setLoading(false);
+    lightboxImage.classList.add('hidden');
+    lightboxVideo.classList.add('hidden');
+    lightboxInspiration.hidden = false;
+    lightboxInspiration.classList.remove('hidden');
+    lightboxInspiration.classList.add('flex');
+    lightboxCaption.textContent = `${currentIndex + 1} / ${slideCount}`;
+  }
+
+  function hideInspirationSlide() {
+    if (!lightboxInspiration) return;
+    lightboxInspiration.hidden = true;
+    lightboxInspiration.classList.add('hidden');
+    lightboxInspiration.classList.remove('flex');
+  }
+
+  function showImage(index) {
+    currentIndex = (index + slideCount) % slideCount;
+
+    if (currentIndex === inspirationIndex) {
+      showInspirationSlide();
+      return;
+    }
+
+    hideInspirationSlide();
+    const image = images[currentIndex];
+    const isVideo = image.type === 'video';
+
+    if (isVideo) {
+      setLoading(true);
+      lightboxImage.classList.add('hidden');
+      lightboxImage.classList.remove('opacity-0');
+      lightboxVideo.classList.remove('hidden');
+      lightboxVideo.src = image.url;
+      lightboxVideo.muted = true;
+      lightboxVideo.loop = true;
+      lightboxVideo.play().catch(() => {});
+    } else {
+      pauseLightboxVideo();
+      lightboxVideo.classList.add('hidden');
+      lightboxImage.classList.remove('hidden');
+      setLoading(true);
+      lightboxImage.src = image.url;
+      lightboxImage.alt = image.alt;
+      if (lightboxImage.complete && lightboxImage.naturalWidth > 0) {
+        setLoading(false);
+      }
+    }
+
+    lightboxCaption.textContent = `${currentIndex + 1} / ${slideCount} — ${image.alt}`;
+  }
+
+  function openLightbox(index) {
+    lastFocusedElement = document.activeElement;
+    lightbox.hidden = false;
+    lightbox.classList.remove('hidden');
+    lightbox.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    showImage(index);
+    closeButton.focus();
+  }
+
+  function closeLightbox() {
+    pauseLightboxVideo();
+    hideInspirationSlide();
+    setLoading(false);
+    lightbox.hidden = true;
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+    document.body.style.overflow = '';
+    if (lastFocusedElement instanceof HTMLElement) {
+      lastFocusedElement.focus();
+    }
+  }
+
+  function goToInspiration() {
+    closeLightbox();
+    const details = document.getElementById('inspiration-details');
+    if (details instanceof HTMLDetailsElement) {
+      details.open = true;
+    }
+  }
+
+  lightboxImage?.addEventListener('load', () => setLoading(false));
+  lightboxImage?.addEventListener('error', () => setLoading(false));
+  lightboxVideo?.addEventListener('loadeddata', () => setLoading(false));
+  lightboxVideo?.addEventListener('error', () => setLoading(false));
+
+  lightboxInspirationLink?.addEventListener('click', goToInspiration);
+
+  document.querySelectorAll('.gallery-trigger').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      openLightbox(Number(trigger.dataset.index));
+    });
+  });
+
+  document.getElementById('open-gallery')?.addEventListener('click', () => openLightbox(0));
+  document.getElementById('open-gallery-desktop')?.addEventListener('click', () => openLightbox(0));
+
+  closeButton?.addEventListener('click', closeLightbox);
+  prevButton?.addEventListener('click', () => showImage(currentIndex - 1));
+  nextButton?.addEventListener('click', () => showImage(currentIndex + 1));
+
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+
+  lightboxMedia?.addEventListener(
+    'touchstart',
+    (event) => {
+      if (event.touches.length !== 1) return;
+      // Avoid fighting native video controls (seek/volume).
+      if (event.target === lightboxVideo) return;
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+      isSwiping = true;
+    },
+    { passive: true },
+  );
+
+  lightboxMedia?.addEventListener(
+    'touchmove',
+    (event) => {
+      if (!isSwiping || event.touches.length !== 1) return;
+      const deltaX = event.touches[0].clientX - touchStartX;
+      const deltaY = event.touches[0].clientY - touchStartY;
+      // Prefer horizontal swipes so vertical scroll/video scrub still feel natural.
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  lightboxMedia?.addEventListener(
+    'touchend',
+    (event) => {
+      if (!isSwiping || event.changedTouches.length !== 1) return;
+      const deltaX = event.changedTouches[0].clientX - touchStartX;
+      const deltaY = event.changedTouches[0].clientY - touchStartY;
+      isSwiping = false;
+
+      if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY)) {
+        return;
+      }
+
+      if (deltaX > 0) {
+        showImage(currentIndex - 1);
+      } else {
+        showImage(currentIndex + 1);
+      }
+    },
+    { passive: true },
+  );
+
+  lightboxMedia?.addEventListener('touchcancel', () => {
+    isSwiping = false;
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (lightbox.hidden) return;
+
+    if (event.key === 'Escape') closeLightbox();
+    if (event.key === 'ArrowLeft') showImage(currentIndex - 1);
+    if (event.key === 'ArrowRight') showImage(currentIndex + 1);
+  });
+</script>

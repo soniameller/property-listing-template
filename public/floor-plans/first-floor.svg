@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100" role="img" aria-label="First floor">
+  <rect width="800" height="1100" fill="#f5f5f4"/>
+  <text x="400" y="64" text-anchor="middle" font-family="Georgia, serif" font-size="36" fill="#292524">First floor</text>
+  <g transform="translate(60,110)">
+    <rect x="0" y="0" width="340" height="340" fill="#fafaf9" stroke="#57534e" stroke-width="4"/><text x="170.0" y="176.0" text-anchor="middle" font-family="DM Sans, Helvetica, sans-serif" font-size="22" fill="#44403c">Bedroom 1</text><rect x="340" y="0" width="340" height="340" fill="#fafaf9" stroke="#57534e" stroke-width="4"/><text x="510.0" y="176.0" text-anchor="middle" font-family="DM Sans, Helvetica, sans-serif" font-size="22" fill="#44403c">Bedroom 2</text><rect x="0" y="340" width="340" height="340" fill="#fafaf9" stroke="#57534e" stroke-width="4"/><text x="170.0" y="516.0" text-anchor="middle" font-family="DM Sans, Helvetica, sans-serif" font-size="22" fill="#44403c">Bedroom 3</text><rect x="340" y="340" width="340" height="340" fill="#fafaf9" stroke="#57534e" stroke-width="4"/><text x="510.0" y="516.0" text-anchor="middle" font-family="DM Sans, Helvetica, sans-serif" font-size="22" fill="#44403c">Bathroom</text>
+  </g>
+  <text x="400" y="1060" text-anchor="middle" font-family="DM Sans, Helvetica, sans-serif" font-size="18" fill="#78716c">Sample plan — replace with your drawings</text>
+</svg>

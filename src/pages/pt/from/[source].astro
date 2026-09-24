@@ -1,0 +1,15 @@
+---
+import PropertyPage from '../../../components/PropertyPage.astro';
+import { localizedPath } from '../../../i18n/utils';
+
+export function getStaticPaths() {
+  return [
+    { params: { source: 'listing' } },
+    { params: { source: 'whatsapp' } },
+    { params: { source: 'facebook' } },
+    { params: { source: 'qr' } },
+  ];
+}
+---
+
+<PropertyPage locale="pt" canonicalPath={localizedPath('pt')} noindex />

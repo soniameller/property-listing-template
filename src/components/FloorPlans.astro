@@ -1,0 +1,125 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+import type { FloorPlan } from '../lib/types';
+
+interface Props {
+  floorPlans: FloorPlan[];
+  locale: Locale;
+}
+
+const { floorPlans, locale } = Astro.props;
+---
+
+{
+  floorPlans.length > 0 && (
+    <section class="border-b border-stone-200 bg-white py-10">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 class="font-serif text-2xl font-semibold text-stone-900">
+          {t(locale, 'floorPlans.title')}
+        </h2>
+        <p class="mt-2 text-stone-600">
+          {t(locale, 'floorPlans.subtitle')}
+        </p>
+        <div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {
+            floorPlans.map((plan) => (
+              <figure class="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
+                <button
+                  type="button"
+                  class="plan-trigger block w-full"
+                  data-src={plan.url}
+                  data-label={plan.label}
+                  aria-label={t(locale, 'floorPlans.view', { label: plan.label })}
+                >
+                  <img
+                    src={plan.url}
+                    alt={plan.alt}
+                    class="w-full object-contain bg-white"
+                    loading="lazy"
+                    width="1192"
+                    height="1684"
+                  />
+                </button>
+                <figcaption class="border-t border-stone-200 px-4 py-3 text-sm font-medium text-stone-800">
+                  {plan.label}
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<div
+  id="plan-lightbox"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/95 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label={t(locale, 'floorPlans.title')}
+  hidden
+>
+  <button
+    type="button"
+    id="plan-lightbox-close"
+    class="absolute right-4 top-4 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+  >
+    {t(locale, 'floorPlans.close')}
+  </button>
+  <figure class="max-h-[90vh] max-w-6xl">
+    <img
+      id="plan-lightbox-image"
+      src=""
+      alt=""
+      class="max-h-[90vh] w-full rounded-lg object-contain bg-white"
+    />
+    <figcaption id="plan-lightbox-caption" class="mt-3 text-center text-sm text-stone-300"></figcaption>
+  </figure>
+</div>
+
+<script>
+  const lightbox = document.getElementById('plan-lightbox');
+  const lightboxImage = document.getElementById('plan-lightbox-image') as HTMLImageElement | null;
+  const lightboxCaption = document.getElementById('plan-lightbox-caption');
+  const closeButton = document.getElementById('plan-lightbox-close');
+  let lastFocusedElement: Element | null = null;
+
+  document.querySelectorAll('.plan-trigger').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      if (!(trigger instanceof HTMLElement) || !lightbox || !lightboxImage) return;
+      lastFocusedElement = document.activeElement;
+      lightboxImage.src = trigger.dataset.src ?? '';
+      lightboxImage.alt = trigger.dataset.label ?? '';
+      if (lightboxCaption) {
+        lightboxCaption.textContent = trigger.dataset.label ?? '';
+      }
+      lightbox.hidden = false;
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      closeButton?.focus();
+    });
+  });
+
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.hidden = true;
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+    document.body.style.overflow = '';
+    if (lastFocusedElement instanceof HTMLElement) {
+      lastFocusedElement.focus();
+    }
+  }
+
+  closeButton?.addEventListener('click', closeLightbox);
+  lightbox?.addEventListener('click', (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox || lightbox.hidden) return;
+    if (event.key === 'Escape') closeLightbox();
+  });
+</script>

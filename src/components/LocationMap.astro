@@ -1,0 +1,57 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+import type { Property } from '../lib/types';
+
+interface Props {
+  property: Property;
+  locale: Locale;
+}
+
+const { property, locale } = Astro.props;
+
+const DEFAULT_LATITUDE = 38.7071;
+const DEFAULT_LONGITUDE = -9.135;
+
+function buildGoogleMapsEmbedUrl(latitude: number, longitude: number): string {
+  const query = encodeURIComponent(`${latitude},${longitude}`);
+  return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
+}
+
+const latitude = property.latitude ?? DEFAULT_LATITUDE;
+const longitude = property.longitude ?? DEFAULT_LONGITUDE;
+const mapEmbedUrl = property.mapEmbedUrl ?? buildGoogleMapsEmbedUrl(latitude, longitude);
+const openMapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+---
+
+<section class="border-b border-stone-200 bg-white py-10" aria-labelledby="location-heading">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h2 id="location-heading" class="font-serif text-2xl font-semibold text-stone-900">
+      {t(locale, 'location.title')}
+    </h2>
+    <p class="mt-2 max-w-3xl text-stone-600">
+      {t(locale, 'location.approx')}
+    </p>
+
+    <div class="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
+      <iframe
+        title={t(locale, 'location.mapTitle')}
+        src={mapEmbedUrl}
+        class="h-[320px] w-full sm:h-[420px]"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      />
+    </div>
+
+    <p class="mt-4 text-sm text-stone-500">
+      <a
+        href={openMapUrl}
+        class="font-medium text-accent underline-offset-2 hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {t(locale, 'location.openMap')}
+      </a>
+    </p>
+  </div>
+</section>

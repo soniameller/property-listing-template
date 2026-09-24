@@ -1,0 +1,24 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<footer class="border-t border-stone-200 bg-white py-8">
+  <div class="mx-auto max-w-7xl px-4 text-center text-sm text-stone-500 sm:px-6 lg:px-8">
+    <p>{t(locale, 'footer.tagline')}</p>
+    <p class="mt-1">{t(locale, 'footer.disclaimer')}</p>
+  </div>
+</footer>
+
+<a
+  href="#contact"
+  class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-accent-dark lg:hidden"
+>
+  {t(locale, 'header.contact')}
+</a>

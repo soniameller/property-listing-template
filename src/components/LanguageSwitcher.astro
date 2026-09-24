@@ -1,0 +1,51 @@
+---
+import type { Locale } from '../i18n/config';
+import { localeLabels } from '../i18n/config';
+import { t } from '../i18n/ui';
+import { switchLocalePath } from '../i18n/utils';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const pathname = Astro.url.pathname;
+const enHref = switchLocalePath(pathname, 'en');
+const ptHref = switchLocalePath(pathname, 'pt');
+---
+
+<nav aria-label={t(locale, 'lang.switchTo')} class="flex items-center gap-1 text-sm font-semibold">
+  <a
+    href={enHref}
+    hreflang="en"
+    lang="en"
+    class:list={[
+      'items-center rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:inline-flex',
+      locale === 'en'
+        ? 'hidden bg-stone-200 text-stone-900'
+        : 'inline-flex text-stone-600 hover:bg-stone-100 hover:text-stone-900',
+    ]}
+    aria-current={locale === 'en' ? 'page' : undefined}
+    aria-label={localeLabels.en}
+  >
+    <span class="text-lg leading-none sm:hidden" aria-hidden="true">🇬🇧</span>
+    <span class="hidden sm:inline">{t(locale, 'lang.en')}</span>
+  </a>
+  <span class="hidden text-stone-300 sm:inline" aria-hidden="true">|</span>
+  <a
+    href={ptHref}
+    hreflang="pt"
+    lang="pt-PT"
+    class:list={[
+      'items-center rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:inline-flex',
+      locale === 'pt'
+        ? 'hidden bg-stone-200 text-stone-900'
+        : 'inline-flex text-stone-600 hover:bg-stone-100 hover:text-stone-900',
+    ]}
+    aria-current={locale === 'pt' ? 'page' : undefined}
+    aria-label={localeLabels.pt}
+  >
+    <span class="text-lg leading-none sm:hidden" aria-hidden="true">🇵🇹</span>
+    <span class="hidden sm:inline">{t(locale, 'lang.pt')}</span>
+  </a>
+</nav>

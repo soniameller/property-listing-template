@@ -1,0 +1,240 @@
+---
+import type { Locale } from '../i18n/config';
+import { t } from '../i18n/ui';
+import type { Property } from '../lib/types';
+import {
+  formatArea,
+  formatPrice,
+  getConditionLabel,
+  getFurnishedLabel,
+  getPropertyTypeLabel,
+} from '../lib/format';
+
+interface Props {
+  property: Property;
+  locale: Locale;
+}
+
+const { property, locale } = Astro.props;
+const typeLabel = getPropertyTypeLabel(property.propertyType, locale);
+
+const descriptionHtml = property.description
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+const highlights = [
+  { label: t(locale, 'details.bedrooms'), value: String(property.bedrooms) },
+  { label: t(locale, 'details.bathrooms'), value: String(property.bathrooms) },
+  {
+    label: t(locale, 'details.builtArea'),
+    value: formatArea(property.builtArea, locale),
+  },
+  ...(property.plotArea
+    ? [
+        {
+          label: t(locale, 'details.plot'),
+          value: formatArea(property.plotArea, locale),
+        },
+      ]
+    : []),
+];
+
+const detailRows = [
+  { label: t(locale, 'details.type'), value: typeLabel },
+  {
+    label: t(locale, 'details.condition'),
+    value: getConditionLabel(property.condition, locale),
+  },
+  ...(property.floor !== undefined
+    ? [{ label: t(locale, 'details.floor'), value: String(property.floor) }]
+    : []),
+  ...(property.totalFloors
+    ? [
+        {
+          label: t(locale, 'details.floors'),
+          value: t(locale, 'details.floorsValue', {
+            count: property.totalFloors,
+          }),
+        },
+      ]
+    : []),
+  ...(property.yearBuilt
+    ? [
+        {
+          label: t(locale, 'details.yearBuilt'),
+          value: String(property.yearBuilt),
+        },
+      ]
+    : []),
+  ...(property.energyCertificate
+    ? [
+        {
+          label: t(locale, 'details.energyCertificate'),
+          value: property.energyCertificate,
+        },
+      ]
+    : []),
+  ...(property.orientation
+    ? [
+        {
+          label: t(locale, 'details.orientation'),
+          value: property.orientation,
+        },
+      ]
+    : []),
+  ...(property.heating
+    ? [{ label: t(locale, 'details.heating'), value: property.heating }]
+    : []),
+  {
+    label: t(locale, 'details.furnished'),
+    value: getFurnishedLabel(property.furnished, locale),
+  },
+  ...(property.communityFees
+    ? [
+        {
+          label: t(locale, 'details.communityFees'),
+          value: t(locale, 'details.perMonth', {
+            price: formatPrice(property.communityFees, property.currency, locale),
+          }),
+        },
+      ]
+    : []),
+  ...(property.reference
+    ? [{ label: t(locale, 'details.reference'), value: property.reference }]
+    : []),
+];
+
+const amenities = [
+  property.hasParking && t(locale, 'amenity.parking'),
+  property.hasTerrace && t(locale, 'amenity.terrace'),
+  property.hasElevator && t(locale, 'amenity.elevator'),
+  property.hasGarden && t(locale, 'amenity.garden'),
+  property.hasPool && t(locale, 'amenity.pool'),
+  property.hasStorage && t(locale, 'amenity.storage'),
+].filter(Boolean);
+---
+
+<section class="border-b border-stone-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
+      <div>
+        <p class="text-sm font-medium uppercase tracking-[0.18em] text-accent">
+          {t(locale, 'details.forSale', { type: typeLabel })}
+        </p>
+        <h1 class="mt-2 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
+          {property.title}
+        </h1>
+        <p class="mt-3 text-lg text-stone-600">
+          {property.address}, {property.postalCode ? `${property.postalCode} ` : ''}
+          {property.city}, {property.province}
+        </p>
+
+        <div class="mt-6 rounded-3xl border border-stone-200 bg-stone-50 p-6 shadow-sm sm:hidden">
+          <p class="text-sm text-stone-500">{t(locale, 'details.askingPrice')}</p>
+          <p class="mt-1 font-serif text-3xl font-bold text-stone-900">
+            {formatPrice(property.price, property.currency, locale)}
+          </p>
+          <a
+            href="#contact"
+            class="mt-6 flex w-full items-center justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {t(locale, 'details.requestViewing')}
+          </a>
+        </div>
+
+        <dl class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {
+            highlights.map((item) => (
+              <div class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4">
+                <dt class="text-sm text-stone-500">{item.label}</dt>
+                <dd class="mt-1 text-2xl font-semibold text-stone-900">{item.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <aside class="hidden lg:block">
+        <div class="sticky top-24 rounded-3xl border border-stone-200 bg-stone-50 p-6 shadow-sm">
+          <p class="text-sm text-stone-500">{t(locale, 'details.askingPrice')}</p>
+          <p class="mt-1 font-serif text-4xl font-bold text-stone-900">
+            {formatPrice(property.price, property.currency, locale)}
+          </p>
+          <a
+            href="#contact"
+            class="mt-6 flex w-full items-center justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark"
+          >
+            {t(locale, 'details.requestViewing')}
+          </a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="border-b border-stone-200 bg-white py-10">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h2 class="font-serif text-2xl font-semibold text-stone-900">
+      {t(locale, 'details.description')}
+    </h2>
+    <div
+      class="prose-description mt-4 max-w-3xl whitespace-pre-line text-base"
+      set:html={descriptionHtml}
+    />
+  </div>
+</section>
+
+<section class="border-b border-stone-200 bg-white py-10">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid gap-10 lg:grid-cols-2">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-stone-900">
+          {t(locale, 'details.features')}
+        </h2>
+        <dl class="mt-5 divide-y divide-stone-200 rounded-2xl border border-stone-200">
+          {
+            detailRows.map((row) => (
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <dt class="text-stone-600">{row.label}</dt>
+                <dd class="ml-auto max-w-[60%] text-right font-medium text-stone-900">{row.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <div>
+        <h2 class="font-serif text-2xl font-semibold text-stone-900">
+          {t(locale, 'details.extras')}
+        </h2>
+        {
+          amenities.length > 0 && (
+            <ul class="mt-5 grid gap-3 sm:grid-cols-2">
+              {amenities.map((amenity) => (
+                <li class="flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-800">
+                  <span class="text-accent" aria-hidden="true">✓</span>
+                  {amenity}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        {
+          property.features.length > 0 && (
+            <ul class="mt-6 space-y-2">
+              {property.features.map((feature) => (
+                <li class="flex items-start gap-2 text-stone-700">
+                  <span class="mt-1 text-accent" aria-hidden="true">•</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
