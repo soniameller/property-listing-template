@@ -4,6 +4,9 @@ A single-page property listing website, similar to an Idealista page. Built with
 
 This repository is a **template**. It ships with demo data and placeholder images only.
 
+<img width="2482" height="9372" alt="screencapture-localhost-4325-2026-09-24-12_00_06" src="https://github.com/user-attachments/assets/40f7f9fc-0ea1-49a2-a915-f02e4f07bc74" />
+
+
 ## Features
 
 - **Listing page**: price, photos, bedrooms, bathrooms, m², features, map, description
